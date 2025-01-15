@@ -17,16 +17,21 @@ for i in 20, 30, 40:
         turtle.forward(100)
         turtle.left(90)
 
+
 turtle.reset()
 turtle.color("green") 
 
-def hexagon(size):
-    for _ in range(6):
-        turtle.forward(size)
-        turtle.left(60)
-for _ in range (6):
-    hexagon(100)
-    turtle.forward(100)
-    turtle.right(60)
+def draw_shape(sides, length):
+    for _ in range(sides):
+        turtle.forward(length)
+        turtle.left(360 / sides)
+
+def repeat_shape(sides, length):
+    for _ in range (sides):
+        draw_shape(sides, length)
+        turtle.forward(length)
+        turtle.right(360 / sides)
+
+repeat_shape(6, 100)
 
 turtle.exitonclick()
