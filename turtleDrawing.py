@@ -20,12 +20,12 @@ for i in 20, 30, 40:
 turtle.reset()
 turtle.color("green") 
 
-def hexagon():
+def hexagon(size):
     for _ in range(6):
-        turtle.forward(100)
+        turtle.forward(size)
         turtle.left(60)
 for _ in range (6):
-    hexagon()
+    hexagon(100)
     turtle.forward(100)
     turtle.right(60)
 
