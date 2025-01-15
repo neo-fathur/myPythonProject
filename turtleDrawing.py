@@ -1,40 +1,32 @@
 import turtle
 
-turtle.reset()
 turtle.shape("turtle")
+
+turtle.reset()
 turtle.color("green") 
 
-turtle.left(20)
+for i in range(10):
+    turtle.forward(15)
+    turtle.penup()
+    turtle.forward(5)
+    turtle.pendown()
 
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
+for i in 20, 30, 40:
+    turtle.left(i)
+    for _ in range(4):
+        turtle.forward(100)
+        turtle.left(90)
 
-turtle.left(30)
+turtle.reset()
+turtle.color("green") 
 
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
-
-turtle.left(40)
-
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
-turtle.forward(50)
-turtle.left(90)
+def hexagon():
+    for _ in range(6):
+        turtle.forward(100)
+        turtle.left(60)
+for _ in range (6):
+    hexagon()
+    turtle.forward(100)
+    turtle.right(60)
 
 turtle.exitonclick()
