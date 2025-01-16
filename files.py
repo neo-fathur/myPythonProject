@@ -1,4 +1,4 @@
-path = 'programmingHub/days.txt'
+path = 'days.txt'
 myFile = open(path, 'r')
 
 print(myFile.read())
@@ -8,7 +8,7 @@ myFile.close()
 
 #==================================================================
 
-path = 'programmingHub/read.txt'
+path = 'read.txt'
 myFile = open(path,'a+')
 myFile.write('\nPython is amazing.')
 myFile.close()
