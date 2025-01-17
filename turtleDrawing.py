@@ -41,10 +41,25 @@ def repeat_shape(sides, length):
 
 repeat_shape(7, 100)
 
-
 turtle.color('black')
 turtle.goto(0, 250)
 turtle.write("Python is awesome!", align="center", font=(None, 16, "bold"))
 turtle.goto(0, 280)
+
+
+turtle.reset()
+
+def draw_spiral(radius):
+    original_xcor = turtle.xcor()
+    original_ycor = turtle.ycor()
+    speed = 1
+    while True:
+        turtle.forward(speed)
+        turtle.left(10)
+        speed += 0.1
+        if turtle.distance(original_xcor, original_ycor) > radius:
+            break
+
+draw_spiral(200)
 
 turtle.exitonclick()
