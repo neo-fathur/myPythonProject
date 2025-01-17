@@ -41,11 +41,10 @@ def repeat_shape(sides, length):
 
 repeat_shape(7, 100)
 
-turtle.goto(0, 250)
+
 turtle.color('black')
+turtle.goto(0, 250)
 turtle.write("Python is awesome!", align="center", font=(None, 16, "bold"))
 turtle.goto(0, 280)
-
-
 
 turtle.exitonclick()
