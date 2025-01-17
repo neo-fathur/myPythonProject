@@ -1,9 +1,7 @@
 import turtle
-turtle.shape("turtle")
 
 turtle.reset()
 turtle.speed(10)
-turtle.color("green") 
 
 for i in range(10):
     turtle.forward(15)
@@ -16,6 +14,7 @@ for i in 20, 30, 40:
     for _ in range(4):
         turtle.forward(100)
         turtle.left(90)
+
 
 
 turtle.reset()
@@ -39,7 +38,7 @@ def repeat_shape(sides, length):
         turtle.forward(length)
         turtle.right(360 / sides)
 
-repeat_shape(7, 100)
+repeat_shape(6, 100)
 
 turtle.color('black')
 turtle.goto(0, 250)
@@ -47,8 +46,9 @@ turtle.write("Python is awesome!", align="center", font=(None, 16, "bold"))
 turtle.goto(0, 280)
 
 
-turtle.reset()
 
+turtle.reset()
+turtle.shape("turtle")
 def draw_spiral(radius):
     original_xcor = turtle.xcor()
     original_ycor = turtle.ycor()
@@ -60,6 +60,6 @@ def draw_spiral(radius):
         if turtle.distance(original_xcor, original_ycor) > radius:
             break
 
-draw_spiral(200)
+draw_spiral(150)
 
 turtle.exitonclick()
