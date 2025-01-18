@@ -15,7 +15,7 @@ for i in 20, 30, 40:
         turtle.forward(100)
         turtle.left(90)
 
-
+ 
 
 turtle.reset()
 turtle.speed(3)
