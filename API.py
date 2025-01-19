@@ -1,18 +1,30 @@
 #clear the screen
 import os
+import urllib.request
+import json
+from pprint import pprint
+
 os.system('cls' if os.name == 'nt' else 'clear')
 
-import urllib.request
 url = "https://graph.facebook.com/facebook/picture?redirect=false"
 response = urllib.request.urlopen(url)
 raw_data = response.read()
 #print(raw_data)
 
-import json
 data = json.loads(raw_data)
 
-from pprint import pprint
-#pprint(data)
+pprint(data)
 
-for x in data["data"]["url"].split("/"):
-    print(x)
+#for x in data["data"]["url"].split("/"):
+#    print(x)
+
+#==============================================================================
+
+url = "http://graph.facebook.com/111974415485969/picture?type=large"
+response = urllib.request.urlopen(url)
+raw_data = response.read()
+
+# Open the file in binary write mode
+with open("profile_image.png", "wb") as image:
+    image.write(raw_data)
+    image.close()
