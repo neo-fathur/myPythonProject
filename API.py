@@ -1,9 +1,9 @@
-#clear the screen
 import os
 import urllib.request
 import json
 from pprint import pprint
 
+#clear the screen
 os.system('cls' if os.name == 'nt' else 'clear')
 
 url = "https://graph.facebook.com/facebook/picture?redirect=false"
