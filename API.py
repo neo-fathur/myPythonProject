@@ -7,6 +7,7 @@ from pprint import pprint
 os.system('cls' if os.name == 'nt' else 'clear')
 
 url = "https://graph.facebook.com/facebook/picture?redirect=false"
+#url = "http://search.twitter.com/search.json?q=python&rpp=1"
 response = urllib.request.urlopen(url)
 raw_data = response.read()
 #print(raw_data)
