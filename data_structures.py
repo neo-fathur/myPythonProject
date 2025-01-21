@@ -18,8 +18,14 @@ picnicItems = {'apples': 5, 'cups': 2}
 print(f"I am bringing {picnicItems.get('cups', 0)} cups.") #if the key is in the dictionary, the get() method returns the value associated with that key.
 print(f"I am bringing {picnicItems.get('pies', 0)} pies.") #if the key is not in the dictionary, the get() method returns the default value, 0.
 
-
-message = 'It was a bright cold day in April, and the clocks were striking thirteen.'
+#another way to access the value of a key in a dictionary:
+#use the backslash to break a long line of code into multiple lines.
+message = \
+'''Dear Alice,
+Eve's cat has been arrested for catnapping, cat burglary, and extortion.
+Sincerely,
+Bob''' #triple quotes allow you to create a string that spans multiple lines.
+print(message)
 count = {}
 for character in message:
     count.setdefault(character, 0) #if the key is not in the dictionary, the setdefault() method adds the key to the dictionary with the value 0.
