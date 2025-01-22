@@ -15,11 +15,11 @@ print()
 
 #================================================================================================
 
-phoneNumRegex = re.compile(r'''(                    # group 1: full phone number
-    (?: \(* (\d{3}) \)* )?                          # group 2: optional area code
-    [\s \- \.]*                                     # optional separator
-    (\d{3} [\s\-\.] \d{4})                          # group 3: main part of the phone number
-    (?: [\s\-\.]* (?:ext|x|ext\.) \s* (\d{2,5}) )?  # group 4: optional extension
+phoneNumRegex = re.compile(r'''(                    # group 1: full phone number. The ( and ) create a group. 
+    (?: \(* (\d{3}) \)* )?                          # group 2: optional area code. The question mark ? means the group preceding it is optional. The \(* and \)* match literal parentheses. 
+    [\s \- \.]*                                     # optional separator. The [\s \- \.]* matches any whitespace, dash, or dot character, zero or more times.
+    (\d{3} [\s\-\.]* \d{4})                         # group 3: main part of the phone number with optional separator. The \d{3} matches three numeric digits. The [\s\-\.] matches any whitespace, dash, or dot character. 
+    (?: [\s\-\.]* (?:ext|x|ext\.) \s* (\d{2,5}) )?  # group 4: optional extension. The (?:...) is a non-capturing group. The \s* matches any whitespace character, zero or more times. The \d{2,5} matches two to five numeric digits.
     )''', re.VERBOSE | re.IGNORECASE | re.DOTALL)   # re.VERBOSE allows for multi-line regex, re.IGNORECASE ignores case, re.DOTALL allows the dot . to match all characters, including newlines.
 text = """
 Call me at 123-456-7890 or (123) 456-7890 or 123.456.7890 ext 1234.
@@ -32,9 +32,31 @@ for match in matches:
     full_number = match[0]
     area_code = match[1]
     main_number = match[2]
-    extension = match[3] if len(match) > 3 else None  # Handle optional extension
+    extension = match[3] if len(match) > 3 else None    # Handle optional extension
     phone_numbers.append((area_code, main_number, extension, full_number))
 pprint(phone_numbers)
+print()
+
+#================================================================================================
+
+emailRegex = re.compile(r'''(           # group 1: full email address. The ( and ) create a group. 
+    ([a-zA-Z0-9._%+-]+)                 # group 2: username. The + means the group preceding it must appear at least once. The ., _, %, +, and - characters are allowed in the username. 
+    @                                   # @ symbol. 
+    ([a-zA-Z0-9.-]+ \. [a-zA-Z]{2,4})   # group 3: domain name. The . and - characters are allowed in the domain name. The {2,4} means the group must have between 2 and 4 alphabetic characters. 
+    )''', re.VERBOSE | re.DOTALL)       # re.VERBOSE allows for multi-line regex, re.DOTALL allows the dot . to match all characters, including newlines.
+text = """
+You can contact me at example123@example.com or at john.doe@my-domain.co.uk.
+Feel free to reach out to support@company123.org anytime.
+"""
+matches = emailRegex.findall(text)
+print([match[0] for match in matches])
+emails = []
+for match in matches:
+    full_email = match[0]
+    username = match[1]
+    domain = match[2]
+    emails.append((domain, username, full_email))
+pprint(emails)
 print()
 
 #================================================================================================
@@ -78,7 +100,7 @@ print()
 
 #================================================================================================
 
-nameRegex = re.compile(r'First Name: (.*) Last Name: (.*)') #the (.*) is a wildcard character that matches zero or more characters.
+nameRegex = re.compile(r'First Name: (.*) Last Name: (.*)') #the (.*) is a wildcard character that matches 0 or more characters.
 mo = nameRegex.search('First Name: Al Last Name: Sweigart')
 First, Last = mo.groups()
 print(First)
