@@ -2,8 +2,3 @@ Hello Developer!
 Welcome to ProgrammingHub.
 Lyon loves to teach Python.
 Python is amazing.
-Python is amazing.
-Python is amazing.
-Python is amazing.
-Python is amazing.
-Python is amazing.
