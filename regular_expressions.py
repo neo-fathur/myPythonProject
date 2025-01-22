@@ -15,12 +15,12 @@ print()
 
 #================================================================================================
 
-phoneNumRegex = re.compile(r'''(
+phoneNumRegex = re.compile(r'''(                    # group 1: full phone number
     (?: \(* (\d{3}) \)* )?                          # group 2: optional area code
     [\s \- \.]*                                     # optional separator
     (\d{3} [\s\-\.] \d{4})                          # group 3: main part of the phone number
-    (?: [\s\-\.]* (?:ext|x|ext\.) \s* (\d{2,5}) )?    # group 4: optional extension
-    )''', re.VERBOSE)                               #re.VERBOSE as the second argument to re.compile() allows you to add whitespace and comments to the string passed to re.compile().
+    (?: [\s\-\.]* (?:ext|x|ext\.) \s* (\d{2,5}) )?  # group 4: optional extension
+    )''', re.VERBOSE | re.IGNORECASE | re.DOTALL)   # re.VERBOSE allows for multi-line regex, re.IGNORECASE ignores case, re.DOTALL allows the dot . to match all characters, including newlines.
 text = """
 Call me at 123-456-7890 or (123) 456-7890 or 123.456.7890 ext 1234.
 You can also reach me at (123)456-7890x123.
@@ -36,7 +36,6 @@ for match in matches:
     phone_numbers.append((area_code, main_number, extension, full_number))
 pprint(phone_numbers)
 print()
-
 
 #================================================================================================
 
