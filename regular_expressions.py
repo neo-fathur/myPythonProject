@@ -23,7 +23,7 @@ phoneNumRegex = re.compile(r'''(                    # group 1: full phone number
     )''', re.VERBOSE | re.IGNORECASE | re.DOTALL)   # re.VERBOSE allows for multi-line regex, re.IGNORECASE ignores case, re.DOTALL allows the dot . to match all characters, including newlines.
 text = """
 Call me at 123-456-7890 or (123) 456-7890 or 123.456.7890 ext 1234.
-You can also reach me at (123)456-7890x123.
+You can also reach me at (123)4567890x123.
 """
 matches = phoneNumRegex.findall(text)
 print([match[0] for match in matches])
@@ -31,7 +31,7 @@ phone_numbers = []
 for match in matches:
     full_number = match[0]
     area_code = match[1]
-    main_number = match[2]
+    main_number = match[2].replace(' ', '').replace('-', '').replace('.', '')   # Remove any whitespace from the main number
     extension = match[3] if len(match) > 3 else None    # Handle optional extension
     phone_numbers.append((area_code, main_number, extension, full_number))
 pprint(phone_numbers)
