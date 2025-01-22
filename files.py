@@ -1,5 +1,4 @@
 from pathlib import Path
-import shelve
 import pprint
 import os
 os.system('cls' if os.name == 'nt' else 'clear')    #clear the screen
@@ -29,6 +28,7 @@ print()
 
 #==================================================================
 
+import shelve
 # Open the shelf file in writeback mode to append new key-value pairs
 shelfFile = shelve.open('animals_shelf.db', writeback=True)
 
@@ -49,5 +49,30 @@ shelfFile.close()                       # close the shelf file
 import animals_data                     # import the file
 print(animals_data.Lion)                # print the content of the file
 print(animals_data.Penguin['habitat'])  # print the habitat of the penguin
+print()
 
+#==================================================================
 
+import re
+def search_files_in_folder(folder_path, pattern):
+    # Compile the regular expression pattern
+    regex = re.compile(pattern)
+
+    # Loop through all files in the specified folder
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.txt'):
+            file_path = os.path.join(folder_path, filename)
+
+            # Open and read each .txt file
+            with open(file_path, 'r') as file:
+                lines = file.readlines()
+                
+                # Search for lines that match the pattern
+                for line_num, line in enumerate(lines, start=1):
+                    if regex.search(line):
+                        print(f'Match found in {filename} (line {line_num}): {line.strip()}')
+
+# Example usage
+folder_path = './'  # Current directory
+pattern = input('Enter the regular expression pattern to search for: ')
+search_files_in_folder(folder_path, pattern)
