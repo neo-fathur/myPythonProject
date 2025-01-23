@@ -34,7 +34,7 @@ def count_vote(radish):
         counts[radish] = counts[radish] + 1
 
 
-with open("radishsurvey.txt") as file:
+with open("myProjectFiles/radishsurvey.txt") as file:
     for line in file:
         line = line.strip() #If line was "Jin Li - White Icicle\n", this code strips the newline from the end so the value of line becomes "Jin Li - White Icicle"
         name, vote = line.split(" - ", 2) #“multiple assignment” technique only works when the number of elements being assigned on the left hand side of the “ = “ matches the number on the right

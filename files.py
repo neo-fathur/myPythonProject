@@ -3,19 +3,19 @@ import pprint
 import os
 os.system('cls' if os.name == 'nt' else 'clear')    #clear the screen
 
-print(Path.home())                      # print the home directory
-print(Path.cwd())                       # print the current working directory
+print(Path.home())  # print the home directory
+print(Path.cwd())   # print the current working directory
 print()
 
 #===============================================================
 
-path = Path.cwd() / 'days.txt'          # create a path object
-print(path.read_text())                 # read the content of the file from a path object
+path = Path.cwd() / 'myProjectFiles/days.txt'   # create a path object
+print(path.read_text()) # read the content of the file from a path object
 print()
 
 #==================================================================
 
-path = os.path.abspath('./read.txt')    # get the absolute path of the file
+path = os.path.abspath('myProjectFiles/read.txt')  # get the absolute path of the file
 fileObj = open(path,'a+')               # open the file in append mode
 fileObj.write('\nPython is amazing.')   # write to the file
 fileObj.close()                         # close the file
@@ -30,7 +30,7 @@ print()
 
 import shelve
 # Open the shelf file in writeback mode to append new key-value pairs
-shelfFile = shelve.open('animals_shelf.db', writeback=True)
+shelfFile = shelve.open('myProjectFiles/animals_shelf.db', writeback=True)
 
 shelfFile['Lion'] = {'habitat': 'Savanna', 'diet': 'Carnivore'}
 shelfFile['Elephant'] = {'habitat': 'Forest', 'diet': 'Herbivore'}
@@ -73,6 +73,6 @@ def search_files_in_folder(folder_path, pattern):
                         print(f'Match found in {filename} (line {line_num}): {line.strip()}')
 
 # Example usage
-folder_path = './'  # Current directory
+folder_path = 'myProjectFiles/' # Specify the folder path to search
 pattern = input('Enter the regular expression pattern to search for: ')
 search_files_in_folder(folder_path, pattern)
