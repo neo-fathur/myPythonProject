@@ -18,6 +18,7 @@
     box-shadow: $toolbar-shadow;
     z-index: z(header);
     #branding {
+        display: block;
         width: 100%;
         h1 {
             // hides h1 because of text appears in list on dropdown menu
@@ -84,8 +85,9 @@
                 border: 1px solid $white;
                 border-top: none;
                 border-radius: 0 0 4px 4px;
-                background: rgba($white, .97);
-                box-shadow: 0 1px 1px rgba($black, .4);
+                background: $white;
+                filter: opacity(.95);
+                box-shadow: 0 1px 1px rgba($black-fallback, .4);
                 &.submenu-open {
                     display: block;
                 }
@@ -129,6 +131,40 @@
                             background: $color-primary;
                         }
                     }
+                    form {
+                        box-shadow: none;
+                        margin: 0;
+                        padding: 0;
+                        button {
+                            float: none;
+                            white-space: nowrap;
+                            line-height: 30px;
+                            height: 30px;
+                            padding: 0 10px 0 15px !important;
+                            cursor: pointer;
+
+                            border: none !important;
+                            border-radius: 0 !important;
+                            width: 100% !important;
+                            color: $black !important;
+                            font-size: $font-size-normal !important;
+                            font-family: $base-font-family !important;
+                            text-align: left;
+
+                            &:active,
+                            &:focus {
+                                filter: none !important;
+                                box-shadow: none !important;
+                                text-decoration: underline !important;
+                            }
+                            &:hover {
+                                filter: none !important;
+                                color: $white !important;
+                                background: $color-primary !important;
+                                text-decoration: none !important;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -153,14 +189,16 @@
                 background-size: 20px !important;
                 &:focus {
                     color: $btn-default-color !important;
-                    background-color: darken($btn-default-bgcolor, 10%) !important;
-                    border-color: darken($btn-default-border, 25%) !important;
+                    background-color: $btn-default-bgcolor !important;
+                    border-color: $btn-default-color !important;
+                    filter: brightness(calc(var(--focus-brightness) * var(--active-brightness)))  !important;
                     text-decoration: none !important;
                 }
                 &:hover {
                     color: $btn-default-color !important;
-                    background-color: darken($btn-default-bgcolor, 10%) !important;
-                    border-color: darken($btn-default-border, 12%) !important;
+                    background-color: $btn-default-bgcolor !important;
+                    border-color: $btn-default-color !important;
+                    filter: brightness(calc(var(--focus-brightness) * var(--active-brightness)))  !important;
                     text-decoration: none !important;
                 }
             }

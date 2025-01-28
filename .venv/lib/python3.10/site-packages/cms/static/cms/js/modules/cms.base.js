@@ -86,16 +86,10 @@ export const Helpers = {
      * @method reloadBrowser
      * @param {String} url where to redirect. if equal to `REFRESH_PAGE` will reload page instead
      * @param {Number} timeout=0 timeout in ms
-     * @param {Boolean} ajax if set to true first initiates **synchronous**
-     *     ajax request to figure out if the browser should reload current page,
-     *     move to another one, or do nothing.
-     * @param {Object} [data] optional data to be passed instead of one provided by request config
-     * @param {String} [data.model=CMS.config.request.model]
-     * @param {String|Number} [data.pk=CMS.config.request.pk]
-     * @returns {Boolean|void}
+     * @returns {void}
      */
     // eslint-disable-next-line max-params
-    reloadBrowser: function(url, timeout, ajax, data) {
+    reloadBrowser: function(url, timeout) {
         var that = this;
         // is there a parent window?
         var win = this._getWindow();
@@ -103,51 +97,15 @@ export const Helpers = {
 
         that._isReloading = true;
 
-        // if there is an ajax reload, prioritize
-        if (ajax) {
-            parent.CMS.API.locked = true;
-            // check if the url has changed, if true redirect to the new path
-            // this requires an ajax request
-            $.ajax({
-                async: false,
-                type: 'GET',
-                url: parent.CMS.config.request.url,
-                data: data || {
-                    model: parent.CMS.config.request.model,
-                    pk: parent.CMS.config.request.pk
-                },
-                success: function(response) {
-                    parent.CMS.API.locked = false;
-
-                    if (response === '' && !url) {
-                        // cancel if response is empty
-                        return false;
-                    } else if (parent.location.pathname !== response && response !== '') {
-                        // api call to the backend to check if the current path is still the same
-                        that.reloadBrowser(response);
-                    } else if (url === 'REFRESH_PAGE') {
-                        // if on_close provides REFRESH_PAGE, only do a reload
-                        that.reloadBrowser();
-                    } else if (url) {
-                        // on_close can also provide a url, reload to the new destination
-                        that.reloadBrowser(url);
-                    }
-                }
-            });
-
-            // cancel further operations
-            return false;
-        }
-
         // add timeout if provided
         parent.setTimeout(function() {
-            if (url && url !== parent.location.href) {
+            if (url === 'REFRESH_PAGE' || !url || url === parent.location.href) {
+                // ensure page is always reloaded #3413
+                parent.location.reload();
+            } else {
                 // location.reload() takes precedence over this, so we
                 // don't want to reload the page if we need a redirect
                 parent.location.href = url;
-            } else {
-                // ensure page is always reloaded #3413
-                parent.location.reload();
             }
         }, timeout || 0);
     },
@@ -322,8 +280,8 @@ export const Helpers = {
     },
 
     /**
-     * Modifies the url with new params and sanitises
-     * the ampersand within the url for #3404.
+     * Modifies the url with new params and sanitises the url
+     * reversing any &amp; to ampersand (introduced with #3404)
      *
      * @method makeURL
      * @param {String} url original url
@@ -341,12 +299,7 @@ export const Helpers = {
         });
 
         return newUrl
-            .toString()
-            .split('#')
-            .map((part, i) => {
-                return i === 0 ? part.replace(/&/g, '&amp;') : part;
-            })
-            .join('#');
+            .toString();
     },
 
     /**
@@ -474,8 +427,89 @@ export const Helpers = {
         var path = win.location.pathname + win.location.search;
 
         return this.makeURL(url, [['cms_path', path]]);
+    },
+
+    /**
+     * Get color scheme either from :root[data-theme] or user system setting
+     *
+     * @method get_color_scheme
+     * @public
+     * @returns {String}
+     */
+    getColorScheme: function () {
+        let state = $('html').attr('data-theme');
+
+        if (!state) {
+            state = localStorage.getItem('theme') || CMS.config.color_scheme || 'auto';
+        }
+        return state;
+    },
+
+    /**
+     * Sets the color scheme for the current document and all iframes contained.
+     *
+     * @method setColorScheme
+     * @public
+     * @param scheme {String}
+     * @returns {void}
+     */
+
+    setColorScheme: function (mode) {
+        let body = $('html');
+        let scheme = (mode !== 'light' && mode !== 'dark') ? 'auto' : mode;
+
+        if (localStorage.getItem('theme') || CMS.config.color_scheme !== scheme) {
+            // Only set local storage if it is either already set or if scheme differs from preset
+            // to avoid fixing the user setting to the preset (which would ignore a change in presets)
+            localStorage.setItem('theme', scheme);
+        }
+
+        body.attr('data-theme', scheme);
+        body.find('div.cms iframe').each(function setFrameColorScheme(i, e) {
+            if (e.contentDocument) {
+                e.contentDocument.documentElement.dataset.theme = scheme;
+                // ckeditor (and potentially other apps) have iframes inside their admin forms
+                // also set color scheme there
+                $(e.contentDocument).find('iframe').each(setFrameColorScheme);
+            }
+        });
+    },
+
+    /**
+     * Cycles the color scheme for the current document and all iframes contained.
+     * Follows the logic introduced in Django's 4.2 admin
+     *
+     * @method setColorScheme
+     * @public}
+     * @returns {void}
+     */
+    toggleColorScheme: function () {
+        const currentTheme = this.getColorScheme();
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (prefersDark) {
+            // Auto (dark) -> Light -> Dark
+            if (currentTheme === 'auto') {
+                this.setColorScheme('light');
+            } else if (currentTheme === 'light') {
+                this.setColorScheme('dark');
+            } else {
+                this.setColorScheme('auto');
+            }
+        } else {
+            // Auto (light) -> Dark -> Light
+            // eslint-disable-next-line no-lonely-if
+            if (currentTheme === 'auto') {
+                this.setColorScheme('dark');
+            } else if (currentTheme === 'dark') {
+                this.setColorScheme('light');
+            } else {
+                this.setColorScheme('auto');
+            }
+        }
     }
 };
+
 
 /**
  * Provides key codes for common keys.

@@ -7,8 +7,7 @@ import keyboard from './keyboard';
 import Plugin from './cms.plugins';
 import { getPlaceholderIds } from './cms.toolbar';
 import Clipboard from './cms.clipboard';
-import URI from 'urijs';
-import DiffDOM from 'diff-dom';
+import { DiffDOM } from 'diff-dom';
 import PreventParentScroll from 'prevent-parent-scroll';
 import { find, findIndex, once, remove, compact, isEqual, zip, every } from 'lodash';
 import ls from 'local-storage';
@@ -131,7 +130,7 @@ class StructureBoard {
             StructureBoard._initializeDragItemsStates();
         } else {
             // triggering hide here to switch proper classnames on switcher
-            that.hide(true);
+            that.hide();
             that._loadedContent = true;
         }
 
@@ -176,7 +175,7 @@ class StructureBoard {
 
     _events() {
         this.ui.window.on('resize.cms.structureboard', () => {
-            if (!this._loadedContent) {
+            if (!this._loadedContent || CMS.config.mode !== 'draft') {
                 return;
             }
             const width = this.ui.window[0].innerWidth;
@@ -313,7 +312,7 @@ class StructureBoard {
 
         var pluginId = tooltip.data('plugin_id');
 
-        return this.show({ saveState: false }).then(function() {
+        return this.show().then(function() {
             var draggable = $('.cms-draggable-' + pluginId);
             var doc = $(document);
             var currentExpandmode = doc.data('expandmode');
@@ -345,7 +344,7 @@ class StructureBoard {
      * @param {Boolean} init true if this is first initialization
      * @returns {Promise}
      */
-    show({ init = false, saveState = true } = {}) {
+    show({ init = false } = {}) {
         // cancel show if live modus is active
         if (CMS.config.mode === 'live') {
             return Promise.resolve(false);
@@ -370,10 +369,6 @@ class StructureBoard {
         // apply new settings
         CMS.settings.mode = 'structure';
         Helpers.setSettings(CMS.settings);
-
-        if (!init && saveState) {
-            this._saveStateInURL();
-        }
 
         return this._loadStructure().then(this._showBoard.bind(this, init));
     }
@@ -440,19 +435,17 @@ class StructureBoard {
                 this._loadedStructure = true;
             })
             .fail(function() {
-                window.location.href = new URI(window.location.href)
-                    .addSearch(CMS.config.settings.structure)
-                    .toString();
+                window.location.href = CMS.config.settings.structure;
             });
     }
 
     _requestMode(mode) {
-        var url = new URI(window.location.href);
+        let url;
 
         if (mode === 'structure') {
-            url.addSearch(CMS.config.settings.structure);
+            url = CMS.config.settings.structure;
         } else {
-            url.addSearch(CMS.settings.edit || 'edit').removeSearch(CMS.config.settings.structure);
+            url = CMS.config.settings.edit;
         }
 
         if (!this[`_request${mode}`]) {
@@ -551,28 +544,17 @@ class StructureBoard {
                 that._loadedContent = true;
             })
             .fail(function() {
-                window.location.href = new URI(window.location.href)
-                    .removeSearch(CMS.config.settings.structure)
-                    .toString();
+                window.location.href = CMS.config.settings.edit;
             });
-    }
-
-    _saveStateInURL() {
-        var url = new URI(window.location.href);
-
-        url[CMS.settings.mode === 'structure' ? 'addSearch' : 'removeSearch'](CMS.config.settings.structure);
-
-        history.replaceState({}, '', url.toString());
     }
 
     /**
      * Hides the structureboard. (Content mode)
      *
      * @method hide
-     * @param {Boolean} init true if this is first initialization
      * @returns {Boolean|void}
      */
-    hide(init) {
+    hide() {
         // cancel show if live modus is active
         if (CMS.config.mode === 'live') {
             return false;
@@ -589,9 +571,6 @@ class StructureBoard {
         this.ui.html.removeClass('cms-structure-mode-structure').addClass('cms-structure-mode-content');
 
         CMS.settings.mode = 'edit';
-        if (!init) {
-            this._saveStateInURL();
-        }
 
         // hide canvas
         return this._loadContent().then(this._hideBoard.bind(this));
@@ -678,12 +657,9 @@ class StructureBoard {
     _makeCondensed() {
         this.condensed = true;
         this.ui.container.addClass('cms-structure-condensed');
-        var url = new URI(window.location.href);
-
-        url.removeSearch('structure');
 
         if (CMS.settings.mode === 'structure') {
-            history.replaceState({}, '', url.toString());
+            history.replaceState({}, '', CMS.config.settings.edit);
         }
 
         var width = this.ui.toolbar.width();
@@ -704,13 +680,10 @@ class StructureBoard {
     _makeFullWidth() {
         this.condensed = false;
         this.ui.container.removeClass('cms-structure-condensed');
-        var url = new URI(window.location.href);
-
-        url.addSearch('structure');
 
         if (CMS.settings.mode === 'structure') {
-            history.replaceState({}, '', url.toString());
-            this.ui.html.addClass('cms-overflow');
+            history.replaceState({}, '', CMS.config.settings.structure);
+            $('html.cms-structure-mode-structure').addClass('cms-overflow');
         }
 
         this.ui.container.css('right', 0);
@@ -1009,6 +982,8 @@ class StructureBoard {
             }
         }
 
+        Plugin._recalculatePluginPositions(action, data);
+
         if (!action) {
             CMS.API.Helpers.reloadBrowser();
             return;
@@ -1022,26 +997,24 @@ class StructureBoard {
         // refresh toolbar
         var currentMode = CMS.settings.mode;
 
-        this._loadToolbar()
-            .done(newToolbar => {
-                CMS.API.Toolbar._refreshMarkup($(newToolbar).find('.cms-toolbar'));
-            })
-            .fail(() => Helpers.reloadBrowser());
-
         if (currentMode === 'structure') {
             this._requestcontent = null;
 
             if (this._loadedContent && action !== 'COPY') {
                 this.updateContent();
+                return;  // Toolbar loaded
             }
-            return;
-        }
-
-        // invalidate the content mode
-        if (action !== 'COPY') {
+        } else if (action !== 'COPY') {
             this._requestcontent = null;
             this.updateContent();
+            return;  // Toolbar loaded
+
         }
+        this._loadToolbar()
+            .done(newToolbar => {
+                CMS.API.Toolbar._refreshMarkup($(newToolbar).find('.cms-toolbar'));
+            })
+            .fail(() => Helpers.reloadBrowser());
     }
 
     _propagateInvalidatedState(action, data) {

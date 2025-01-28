@@ -8,14 +8,12 @@ import Navigation from './cms.navigation';
 import Sideframe from './cms.sideframe';
 import Modal from './cms.modal';
 import Plugin from './cms.plugins';
-import DiffDOM from 'diff-dom';
 import { filter, throttle, uniq } from 'lodash';
 import { showLoader, hideLoader } from './loader';
 import { Helpers, KEYS } from './cms.base';
 
 var SECOND = 1000;
 var TOOLBAR_OFFSCREEN_OFFSET = 10; // required to hide box-shadow
-var dd;
 
 export const getPlaceholderIds = pluginRegistry =>
     uniq(filter(pluginRegistry, ([, opts]) => opts.type === 'placeholder').map(([, opts]) => opts.placeholder_id));
@@ -99,18 +97,6 @@ var Toolbar = new Class({
 
         // set a state to determine if we need to reinitialize this._events();
         this.ui.toolbar.data('ready', true);
-
-        dd = new DiffDOM({
-            preDiffApply(info) {
-                if (
-                    (info.diff.action === 'removeAttribute' || info.diff.action === 'modifyAttribute') &&
-                    info.diff.name === 'style' &&
-                    $('.cms-toolbar').is(info.node)
-                ) {
-                    return true;
-                }
-            }
-        });
     },
 
     /**
@@ -347,7 +333,7 @@ var Toolbar = new Class({
                 var link = $(el);
 
                 // in case the button has a data-rel attribute
-                if (link.attr('data-rel')) {
+                if (link.attr('data-rel') || link.hasClass('cms-form-post-method')) {
                     link.off(that.click).on(that.click, function(e) {
                         e.preventDefault();
                         that._delegate($(this));
@@ -357,43 +343,6 @@ var Toolbar = new Class({
                         e.stopPropagation();
                     });
                 }
-            });
-
-            // in case of the publish button
-            btn.find('.cms-publish-page').off(`${that.click}.publishpage`).on(`${that.click}.publishpage`, function(e) {
-                if (!Helpers.secureConfirm(CMS.config.lang.publish)) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-            });
-
-            btn.find('.cms-btn-publish').off(`${that.click}.publish`).on(`${that.click}.publish`, function(e) {
-                e.preventDefault();
-                showLoader();
-                // send post request to prevent xss attacks
-                $.ajax({
-                    type: 'post',
-                    url: $(this).prop('href'),
-                    data: {
-                        placeholders: getPlaceholderIds(CMS._plugins),
-                        csrfmiddlewaretoken: CMS.config.csrf
-                    },
-                    success: function() {
-                        var url = Helpers.makeURL(Helpers._getWindow().location.href.split('?')[0], [
-                            [CMS.settings.edit_off, 'true']
-                        ]);
-
-                        Helpers.reloadBrowser(url);
-                        hideLoader();
-                    },
-                    error: function(jqXHR) {
-                        hideLoader();
-                        CMS.API.Messages.open({
-                            message: jqXHR.responseText + ' | ' + jqXHR.status + ' ' + jqXHR.statusText,
-                            error: true
-                        });
-                    }
-                });
             });
         });
 
@@ -458,15 +407,26 @@ var Toolbar = new Class({
             });
         }
 
-        // open sideframe if it was previously opened
-        if (CMS.settings.sideframe && CMS.settings.sideframe.url && CMS.config.auth) {
-            var sideframe = new Sideframe();
+        // open sideframe if it was previously opened and it's enabled
+        var sideFrameEnabled = typeof CMS.settings.sideframe_enabled === 'undefined' || CMS.settings.sideframe_enabled;
+
+        if (CMS.settings.sideframe
+            && CMS.settings.sideframe.url
+            && CMS.config.auth
+            && sideFrameEnabled
+        ) {
+            var sideframe = CMS.API.Sideframe || new Sideframe();
 
             sideframe.open({
                 url: CMS.settings.sideframe.url,
                 animate: false
             });
         }
+
+        // set color scheme
+        Helpers.setColorScheme (
+            localStorage.getItem('theme') || CMS.config.color_scheme || 'auto'
+        );
 
         // add toolbar ready class to body and fire event
         this.ui.body.addClass('cms-ready');
@@ -549,11 +509,11 @@ var Toolbar = new Class({
                     if (onSuccess === 'FOLLOW_REDIRECT') {
                         Helpers.reloadBrowser(response.url);
                     } else {
-                        Helpers.reloadBrowser(onSuccess, false, true);
+                        Helpers.reloadBrowser(onSuccess);
                     }
                 } else {
                     // reload
-                    Helpers.reloadBrowser(false, false, true);
+                    Helpers.reloadBrowser();
                 }
             })
             .fail(function(jqXHR) {
@@ -611,16 +571,6 @@ var Toolbar = new Class({
                     message: el.data('text')
                 });
                 break;
-            case 'sideframe':
-                var sideframe = new Sideframe({
-                    onClose: el.data('on-close')
-                });
-
-                sideframe.open({
-                    url: el.attr('href'),
-                    animate: true
-                });
-                break;
             case 'ajax':
                 this.openAjax({
                     url: el.attr('href'),
@@ -630,9 +580,48 @@ var Toolbar = new Class({
                     onSuccess: el.data('on-success')
                 });
                 break;
+            case 'color-toggle':
+                Helpers.toggleColorScheme();
+                break;
+            case 'sideframe':
+                // If the sideframe is enabled, show it
+                if (typeof CMS.settings.sideframe_enabled === 'undefined' || CMS.settings.sideframe_enabled) {
+                    this._openSideFrame(el);
+                    break;
+                }
+                // Else fall through to default, the sideframe is disabled
+
             default:
-                Helpers._getWindow().location.href = el.attr('href');
+                if (el.hasClass('cms-form-post-method')) {
+                    this._sendPostRequest(el);
+                } else {
+                    Helpers._getWindow().location.href = el.attr('href');
+                }
         }
+    },
+
+    _openSideFrame: function _openSideFrame(el) {
+        var sideframe = CMS.API.Sideframe || new Sideframe({
+            onClose: el.data('on-close')
+        });
+
+        sideframe.open({
+            url: el.attr('href'),
+            animate: true
+        });
+    },
+
+    _sendPostRequest: function _sendPostRequest(el) {
+        /* Allow post method to be used */
+        var formToken = document.querySelector('form input[name="csrfmiddlewaretoken"]');
+        var csrfToken = '<input type="hidden" name="csrfmiddlewaretoken" value="' +
+            ((formToken ? formToken.value : formToken) || window.CMS.config.csrf) + '">';
+        var fakeForm = $(
+            '<form style="display: none" action="' + el.attr('href') + '" method="POST">' + csrfToken +
+            '</form>'
+        );
+
+        fakeForm.appendTo(Helpers._getWindow().document.body).submit();
     },
 
     /**
@@ -749,9 +738,8 @@ var Toolbar = new Class({
 
     _refreshMarkup: function(newToolbar) {
         const switcher = this.ui.toolbarSwitcher.detach();
-        const diff = dd.diff(this.ui.toolbar[0], newToolbar[0]);
 
-        dd.apply(this.ui.toolbar[0], diff);
+        $(this.ui.toolbar).html(newToolbar.children());
 
         $('.cms-toolbar-item-cms-mode-switcher').replaceWith(switcher);
 

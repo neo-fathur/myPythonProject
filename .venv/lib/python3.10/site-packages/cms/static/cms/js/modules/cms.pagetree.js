@@ -3,6 +3,7 @@
  */
 
 import $ from 'jquery';
+import URL from 'urijs';
 
 import Class from 'classjs';
 import { Helpers, KEYS } from './cms.base';
@@ -45,6 +46,8 @@ var PageTree = new Class({
 
         Helpers.csrf(this.options.csrf);
 
+        this._setupLanguages();
+
         // cancel if pagetree is not available
         if ($.isEmptyObject(opts) || opts.empty) {
             this._getClipboard();
@@ -77,8 +80,20 @@ var PageTree = new Class({
             document: $(document),
             tree: pagetree.find('.js-cms-pagetree'),
             dialog: $('.js-cms-tree-dialog'),
-            siteForm: $('.js-cms-pagetree-site-form')
+            siteForm: $('.js-cms-pagetree-site-form'),
+            languagesSelect: $('.js-cms-pagetree-languages')
         };
+    },
+
+    _setupLanguages: function _setupLanguages() {
+        this.ui.languagesSelect.on('change', () => {
+            const newLanguage = this.ui.languagesSelect.val();
+
+            const url = new URL(window.location.href).removeSearch('language')
+                .addSearch('language', newLanguage).toString();
+
+            window.location.href = url;
+        });
     },
 
     /**
@@ -312,6 +327,31 @@ var PageTree = new Class({
             } else if (isCopyClassAdded) {
                 $('.jstree-is-dragging').removeClass('jstree-is-dragging-copy');
                 isCopyClassAdded = false;
+            }
+
+            // styling the #jstree-marker dynamically on dnd_move.vakata
+            // because jsTree doesn't support RTL on this specific case
+            // and sets the 'left' property without checking document direction
+            var ins = $.jstree.reference(data.event.target);
+
+            // make sure we're hovering over a tree node
+            if (ins) {
+                var marker = $('#jstree-marker');
+                var root = $('#changelist');
+                var column = $(data.data.origin.element);
+
+                var hover = ins.settings.dnd.large_drop_target ?
+                                $(data.event.target)
+                                    .closest('.jstree-node') :
+                                $(data.event.target)
+                                    .closest('.jstree-anchor').parent();
+
+                var width = root.width() - (column.width() - hover.width());
+
+                marker.css({
+                    left: `${root.offset().left}px`,
+                    width: `${width}px`
+                });
             }
         });
 
@@ -851,7 +891,23 @@ var PageTree = new Class({
             if (element.closest('.cms-pagetree-dropdown-item-disabled').length) {
                 return;
             }
+            if (element.attr('target') === '_top') {
+                // Post to target="_top" requires to create a form and submit it
+                var parent = window;
 
+                if (window.parent) {
+                    parent = window.parent;
+                }
+                let formToken = document.querySelector('form input[name="csrfmiddlewaretoken"]');
+                let csrfToken = '<input type="hidden" name="csrfmiddlewaretoken" value="' +
+                    ((formToken ? formToken.value : formToken) || window.CMS.config.csrf) + '">';
+
+                $('<form method="post" action="' + element.attr('href') + '">' +
+                    csrfToken + '</form>')
+                    .appendTo($(parent.document.body))
+                    .submit();
+                return;
+            }
             try {
                 window.top.CMS.API.Toolbar.showLoader();
             } catch (err) {}
@@ -869,26 +925,14 @@ var PageTree = new Class({
                         // simply reload the page
                         that._reloadHelper();
                     } else {
-                        // if we're in the sideframe we have to actually
-                        // check if we are publishing a page we're currently in
-                        // because if the slug did change we would need to
-                        // redirect to that new slug
-                        // Problem here is that in case of the apphooked page
-                        // the model and pk are empty and reloadBrowser doesn't really
-                        // do anything - so here we specifically force the data
-                        // to be the data about the page and not the model
-                        var parent = window.parent ? window.parent : window;
-                        var data = {
-                            // this shouldn't be hardcoded, but there is no way around it
-                            model: 'cms.page',
-                            pk: parent.CMS.config.request.page_id
-                        };
-
-                        Helpers.reloadBrowser('REFRESH_PAGE', false, true, data);
+                        Helpers.reloadBrowser('REFRESH_PAGE');
                     }
                 })
                 .fail(function(error) {
-                    that.showError(error.statusText);
+                    try {
+                        window.top.CMS.API.Toolbar.hideLoader();
+                    } catch (err) {}
+                    that.showError(error.responseText ? error.responseText : error.statusText);
                 });
         });
     },

@@ -82,7 +82,24 @@ a.btn {
     @include button-variant($btn-default-color, $btn-default-bgcolor, $btn-default-border, true);
 }
 
+.button.default, input[type=submit].default, .submit-row input.default {
+    float: right;
+}
+
 .submit-row {
+    display: block;
+    text-align: right;
+    input {
+        display: inline-block;
+    }
+    .deletelink-box, .deletelink {
+        display: inline-block;
+        float: left;
+    }
+    a.deletelink {
+        margin-left: 10px;
+        display: inline-block;
+    }
     .btn {
         padding: 10px 20px !important;
         height: 36px !important;
@@ -133,7 +150,7 @@ a:link {
     text-decoration: none;
     &:hover,
     &:active {
-        color: $color-primary !important;
+        color: $color-primary;
     }
     &:visited {
         color: $color-primary;
@@ -152,7 +169,7 @@ a.button.cancel-link {
     padding: 0 20px !important
 }
 // resets general list styles for object-tool list elements
-.colM ul:not(.object-tools) {
+.colM ul:not(.object-tools):not(.messagelist) {
     margin: 20px 0 25px;
     border-bottom: solid 1px $gray-lighter;
     &:empty {
