@@ -2,6 +2,7 @@ import datetime
 
 from django.db import models
 from django.utils import timezone
+from django.contrib import admin
 
 
 class Question(models.Model):
@@ -9,6 +10,11 @@ class Question(models.Model):
     pub_date = models.DateTimeField("date published")   # The name of each Field instance (e.g. question_text or pub_date) is the field's name, in machine-friendly format. You'll use this value in your Python code, and your database will use it as the column name.
     def __str__(self):                                  # You can give a Field a human-readable name. If a field has a name attribute, Django will use that name in the admin site.
         return self.question_text                       # Some Field classes have required arguments. CharField, for example, requires that you give it a max_length. That's used not only in the database schema, but in validation, as we'll soon see.
+    @admin.display(
+        boolean=True,
+        ordering="pub_date",
+        description="Published recently?",
+    )
     def was_published_recently(self):                   # Each Field instance has a name, which is used to reference it in Django code. This name is the machine-readable name, in lowercase, with underscores, and it's the same name you'll use to refer to the field in Python code.
         now = timezone.now()
         #return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
