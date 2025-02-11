@@ -1,10 +1,10 @@
-import requests
+from requests import get
 from bs4 import BeautifulSoup
 import os
 os.system('cls' if os.name == 'nt' else 'clear')    #clear the screen
 
 url = "http://quotes.toscrape.com"
-response = requests.get(url)
+response = get(url)
 
 # Check if request was successful
 if response.status_code == 200:
@@ -14,46 +14,15 @@ else:
 
 # Parse the HTML content
 soup = BeautifulSoup(response.content, 'html.parser')
-#print(soup.prettify()) # print the content of the webpage
-print()
-#===============================================================
-# Extract the title of the webpage
-title = soup.title.string
-print(f"Title of the webpage: {title}")
-print()
-#===============================================================
-# Extract all the quotes from the webpage
-quotes = soup.find_all('span', class_='text')
-for quote in quotes:
-    print(quote.text)
-print()
-#===============================================================
-# Extract the author of each quote
-authors = soup.find_all('small', class_='author')
-for author in authors:
-    print(author.text)
-print()
-#===============================================================
-# Extract all the tags
-tags = soup.find_all('div', class_='tags')
-for tag in tags:
-    tag = tag.find_all('a', class_='tag')
-    for t in tag:
-        print(t.text)
-print()
-#===============================================================
-# Extract the next page link
-next_page = soup.find('li', class_='next')
-next_page_link = next_page.find('a')['href']
-print(f"Next page link: {url}{next_page_link}")
-print()
-#===============================================================
-# Extract all the quotes from the next page
-next_page_url = url + next_page_link
-response = requests.get(next_page_url)
-soup = BeautifulSoup(response.content, 'html.parser')
+print(soup.prettify()) # print the content of the webpage
+print("-" * 100)
 
-quotes = soup.find_all('span', class_='text')
-for quote in quotes:
-    print(quote.text)
-print()
+for quote_div in soup.find_all("div", class_="quote"):
+    quote_text = quote_div.find("span", class_="text").text
+    author = quote_div.find("small", class_="author").text
+    tags = [tag.text for tag in quote_div.find_all("a", class_="tag")]
+
+    print(f"Quote: {quote_text}")
+    print(f"Author: {author}")
+    print(f"Tags: {', '.join(tags)}")
+    print("-" * 100)
